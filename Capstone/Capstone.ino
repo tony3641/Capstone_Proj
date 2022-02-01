@@ -17,6 +17,9 @@ DFRobot_H3LIS200DL_I2C acce;
 #define H3LIS200DL_CS 2  //The pin on the development board with the corresponding silkscreen printed as P2 
 #endif
 
+int32_t large = 0;
+uint8_t i;
+
 // the setup function runs once when you press reset or power the board
 void setup() {
   Serial.begin(9600);
@@ -27,21 +30,27 @@ void setup() {
   Serial.print("Chip ID=");
   Serial.println(acce.getID(), HEX);
   acce.setRange(DFRobot_LIS::eH3lis200dl_200g);
-  acce.setAcquireRate(DFRobot_LIS::eNormal_50HZ);
+  acce.setAcquireRate(DFRobot_LIS::eNormal_100HZ);
 }
 
 // the loop function runs over and over again forever
 void loop() {
-  long ax, ay, az;
+  int32_t ax, ay, az;
   ax = acce.readAccX();
   ay = acce.readAccY();
   az = acce.readAccZ();
-  Serial.print("X=");
-  Serial.print(ax);
-  Serial.print("  Y=");
-  Serial.print(ay);
-  Serial.print("  Z=");
-  Serial.print(az);
-  Serial.print("\n");
-  delay(50);
+  double acc = sqrt(ax * ax + ay * ay + az * az);
+  if (acc > large) {
+	  large = acc;
+	  i = 0;
+  }
+  else {
+	  i++;
+  }
+  large = i >= 10 ? 0 : large; //clear previous largest recording after 10 cycles
+  Serial.print("3D_Acc=");
+  Serial.print(acc);
+  Serial.print(" Largest=");
+  Serial.println(large);
+  delay(10);
 }
