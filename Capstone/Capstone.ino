@@ -7,6 +7,7 @@
 #include <DFRobot_LIS2DW12.h>
 #include <DFRobot_LIS2DH12.h>
 #include <DFRobot_LIS.h>
+
 DFRobot_H3LIS200DL_I2C acce;
 
 #if defined(ESP32) || defined(ESP8266)
@@ -17,12 +18,13 @@ DFRobot_H3LIS200DL_I2C acce;
 #define H3LIS200DL_CS 2  //The pin on the development board with the corresponding silkscreen printed as P2 
 #endif
 
-int32_t large = 0;
-uint8_t i;
+float large = 0;
+int peak_val_loop_ctrl;
+int bt_loop_ctrl=20;
 
 // the setup function runs once when you press reset or power the board
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   while (!acce.begin()) {
 	  Serial.println("I2C initialization failed.");
 	  delay(1000);
@@ -39,18 +41,29 @@ void loop() {
   ax = acce.readAccX();
   ay = acce.readAccY();
   az = acce.readAccZ();
-  double acc = sqrt(ax * ax + ay * ay + az * az);
+  float acc = sqrt(ax * ax + ay * ay + az * az);
+
   if (acc > large) {
 	  large = acc;
-	  i = 0;
+	  peak_val_loop_ctrl = 0;
   }
   else {
-	  i++;
+	  peak_val_loop_ctrl++;
   }
-  large = i >= 10 ? 0 : large; //clear previous largest recording after 10 cycles
-  Serial.print("3D_Acc=");
-  Serial.print(acc);
-  Serial.print(" Largest=");
-  Serial.println(large);
+  large = peak_val_loop_ctrl >= 100 ? 0 : large; //clear previous peak recording after 1s cycles
+
+  if (bt_loop_ctrl == 0) { //sent to bluetooth every 200ms
+	  String acc_str = String(acc);
+	  String large_str = String(large);
+	  const char* acc_ch = acc_str.c_str();
+	  const char* large_ch = large_str.c_str();
+	  Serial.write("3D_Acc=");
+	  Serial.write(acc_ch);
+	  Serial.write(" Peak=");
+	  Serial.write(large_ch);
+	  Serial.write("\n");
+	  bt_loop_ctrl = 20;
+  }
+  bt_loop_ctrl--;
   delay(10);
 }
