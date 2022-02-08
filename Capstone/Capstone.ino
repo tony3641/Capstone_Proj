@@ -57,7 +57,13 @@ void loop() {
 	  String peak_str = String(peak);
 	  const char* acc_ch = acc_str.c_str(); //convert C++ String to C str
 	  const char* peak_ch = peak_str.c_str();
-	  Serial.write("3D_Acc=");
+	  /*----------------------------------------------
+		                    Note
+		IF you want to send data string to BLE serial, 
+		use Serial.write() instead of Serial.print()!
+		Only C string is supported!!
+	   ---------------------------------------------*/
+	  Serial.write("3D_Acc="); //Send data string to BLE
 	  Serial.write(acc_ch);
 	  Serial.write(" Peak=");
 	  Serial.write(peak_ch);
