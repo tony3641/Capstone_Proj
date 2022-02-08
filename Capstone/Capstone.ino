@@ -71,5 +71,5 @@ void loop() {
 	  bt_loop_ctrl = 20;
   }
   bt_loop_ctrl--;
-  delay(10);
+  delay(10); //Set loop frequency to ~100Hz
 }
