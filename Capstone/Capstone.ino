@@ -8,31 +8,31 @@
 #include <DFRobot_LIS2DH12.h>
 #include <DFRobot_LIS.h>
 
-DFRobot_H3LIS200DL_I2C acce;
+DFRobot_H3LIS200DL_I2C acce; //Instantiate accelerometer object
 
 #if defined(ESP32) || defined(ESP8266)
 #define H3LIS200DL_CS  D3
-#elif defined(__AVR__) || defined(ARDUINO_SAM_ZERO)
+#elif defined(__AVR__) || defined(ARDUINO_SAM_ZERO) //Using ATMega328p here, which is an AVR controller.
 #define H3LIS200DL_CS 3
 #elif (defined NRF5)
 #define H3LIS200DL_CS 2  //The pin on the development board with the corresponding silkscreen printed as P2 
 #endif
 
-float large = 0;
+float peak = 0;
 int peak_val_loop_ctrl;
 int bt_loop_ctrl=20;
 
 // the setup function runs once when you press reset or power the board
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(115200); //set baud rate to 115200 for BLE communication
   while (!acce.begin()) {
 	  Serial.println("I2C initialization failed.");
 	  delay(1000);
   }
   Serial.print("Chip ID=");
   Serial.println(acce.getID(), HEX);
-  acce.setRange(DFRobot_LIS::eH3lis200dl_200g);
-  acce.setAcquireRate(DFRobot_LIS::eNormal_100HZ);
+  acce.setRange(DFRobot_LIS::eH3lis200dl_200g); //set reading range to 200g
+  acce.setAcquireRate(DFRobot_LIS::eNormal_100HZ); //set refresh rate to 100Hz
 }
 
 // the loop function runs over and over again forever
@@ -41,26 +41,26 @@ void loop() {
   ax = acce.readAccX();
   ay = acce.readAccY();
   az = acce.readAccZ();
-  float acc = sqrt(ax * ax + ay * ay + az * az);
+  float acc = sqrt(ax * ax + ay * ay + az * az); //calculate 3D acceleration based on XYZ axis
 
-  if (acc > large) {
-	  large = acc;
+  if (acc > peak) {
+	  peak = acc;
 	  peak_val_loop_ctrl = 0;
   }
   else {
 	  peak_val_loop_ctrl++;
   }
-  large = peak_val_loop_ctrl >= 100 ? 0 : large; //clear previous peak recording after 1s cycles
+  peak = peak_val_loop_ctrl >= 100 ? 0 : peak; //clear previous peak recording after 1s cycles
 
   if (bt_loop_ctrl == 0) { //sent to bluetooth every 200ms
 	  String acc_str = String(acc);
-	  String large_str = String(large);
-	  const char* acc_ch = acc_str.c_str();
-	  const char* large_ch = large_str.c_str();
+	  String peak_str = String(peak);
+	  const char* acc_ch = acc_str.c_str(); //convert C++ String to C str
+	  const char* peak_ch = peak_str.c_str();
 	  Serial.write("3D_Acc=");
 	  Serial.write(acc_ch);
 	  Serial.write(" Peak=");
-	  Serial.write(large_ch);
+	  Serial.write(peak_ch);
 	  Serial.write("\n");
 	  bt_loop_ctrl = 20;
   }
