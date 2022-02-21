@@ -21,6 +21,7 @@ DFRobot_H3LIS200DL_I2C acce; //Instantiate accelerometer object
 float peak = 0;
 int peak_val_loop_ctrl;
 int bt_loop_ctrl=20;
+int detected = 0;
 
 // the setup function runs once when you press reset or power the board
 void setup() {
@@ -52,23 +53,29 @@ void loop() {
   }
   peak = peak_val_loop_ctrl >= 100 ? 0 : peak; //clear previous peak recording after 1s cycles
 
-  if (bt_loop_ctrl == 0) { //sent to bluetooth every 200ms
+  detected ? bt_loop_ctrl = 0 : bt_loop_ctrl; //If impact detected, sent data package to smartphone app immediately
+
+  if (bt_loop_ctrl == 0) { //sent to bluetooth every 2000ms
 	  String acc_str = String(acc);
 	  String peak_str = String(peak);
 	  const char* acc_ch = acc_str.c_str(); //convert C++ String to C str
 	  const char* peak_ch = peak_str.c_str();
-	  /*----------------------------------------------
-		                    Note
-		IF you want to send data string to BLE serial, 
-		use Serial.write() instead of Serial.print()!
-		Only C string is supported!!
-	   ---------------------------------------------*/
+	  /*---------------------------------------------------
+		                     Note
+		 IF you want to send data string to BLE serial, 
+		 use Serial.write() instead of Serial.print()!
+		 Only C string is supported!!
+	   --------------------------------------------------*/
 	  Serial.write("3D_Acc="); //Send data string to BLE
 	  Serial.write(acc_ch);
 	  Serial.write(" Peak=");
 	  Serial.write(peak_ch);
+	  if (detected) {
+		  Serial.write(" IMPACT");
+		  detected = 0;
+	  }
 	  Serial.write("\n");
-	  bt_loop_ctrl = 20;
+	  bt_loop_ctrl = 200;
   }
   bt_loop_ctrl--;
   delay(10); //Set loop frequency to ~100Hz
