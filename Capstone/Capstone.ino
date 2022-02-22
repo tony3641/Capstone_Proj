@@ -19,9 +19,10 @@ DFRobot_H3LIS200DL_I2C acce; //Instantiate accelerometer object
 #endif
 
 float peak = 0;
-int peak_val_loop_ctrl;
-int bt_loop_ctrl=20;
-int detected = 0;
+int peak_val_loop_ctrl; //peak value clearing counter
+int bt_loop_ctrl = 0; //bluetooth communication counter
+int detect_ctrl = 0; //impact detection counter
+int detected = 0; 
 
 // the setup function runs once when you press reset or power the board
 void setup() {
@@ -43,7 +44,9 @@ void loop() {
   ay = acce.readAccY();
   az = acce.readAccZ();
   float acc = sqrt(ax * ax + ay * ay + az * az); //calculate 3D acceleration based on XYZ axis
-
+  if (acc > 10 && detect_ctrl ==0 ) {
+	  detected = 1;
+  }
   if (acc > peak) {
 	  peak = acc;
 	  peak_val_loop_ctrl = 0;
@@ -51,11 +54,10 @@ void loop() {
   else {
 	  peak_val_loop_ctrl++;
   }
-  peak = peak_val_loop_ctrl >= 100 ? 0 : peak; //clear previous peak recording after 1s cycles
-
+  peak = peak_val_loop_ctrl >= 200 ? 0 : peak; //clear previous peak recording after 2s cycles
   detected ? bt_loop_ctrl = 0 : bt_loop_ctrl; //If impact detected, sent data package to smartphone app immediately
 
-  if (bt_loop_ctrl == 0) { //sent to bluetooth every 2000ms
+  if (bt_loop_ctrl == 0) { //sent to bluetooth every 2000ms if no impact is detected
 	  String acc_str = String(acc);
 	  String peak_str = String(peak);
 	  const char* acc_ch = acc_str.c_str(); //convert C++ String to C str
@@ -71,12 +73,14 @@ void loop() {
 	  Serial.write(" Peak=");
 	  Serial.write(peak_ch);
 	  if (detected) {
+		  detect_ctrl = 100; 
 		  Serial.write(" IMPACT");
 		  detected = 0;
 	  }
 	  Serial.write("\n");
-	  bt_loop_ctrl = 200;
+	  bt_loop_ctrl = 500; //Send BT packages every ~5s, immediately if impact detected.
   }
+  detect_ctrl > 0 ? detect_ctrl-- : detect_ctrl;
   bt_loop_ctrl--;
   delay(10); //Set loop frequency to ~100Hz
 }
