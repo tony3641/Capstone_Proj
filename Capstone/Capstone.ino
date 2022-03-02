@@ -21,7 +21,7 @@ DFRobot_H3LIS200DL_I2C acce; //Instantiate accelerometer object
 #define H3LIS200DL_CS  D3
 #elif defined(__AVR__) || defined(ARDUINO_SAM_ZERO) //Using ATMega328p here, which is an AVR controller.
 #define H3LIS200DL_CS 3
-#elif (defined NRF5)
+#elif defined (NRF5)
 #define H3LIS200DL_CS 2  //The pin on the development board with the corresponding silkscreen printed as P2 
 #endif
 
