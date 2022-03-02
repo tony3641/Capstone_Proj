@@ -10,6 +10,13 @@
 
 DFRobot_H3LIS200DL_I2C acce; //Instantiate accelerometer object
 
+
+#define TWO_SECOND 200
+#define THIRTY_SECOND 3000
+#define TRUE 1
+#define FALSE 0
+
+/*Accelerometer Configuration*/
 #if defined(ESP32) || defined(ESP8266)
 #define H3LIS200DL_CS  D3
 #elif defined(__AVR__) || defined(ARDUINO_SAM_ZERO) //Using ATMega328p here, which is an AVR controller.
@@ -19,9 +26,9 @@ DFRobot_H3LIS200DL_I2C acce; //Instantiate accelerometer object
 #endif
 
 float peak = 0;
-int peak_val_loop_ctrl; //peak value clearing counter
-int bt_loop_ctrl = 0; //bluetooth communication counter
-int detect_ctrl = 0; //impact detection counter
+int peak_val_loop_counter = 0; //peak value clearing counter
+int bt_loop_counter = 0; //bluetooth communication counter
+int detect_counter = 0; //impact detection counter
 int detected = 0; 
 
 // the setup function runs once when you press reset or power the board
@@ -44,20 +51,20 @@ void loop() {
   ay = acce.readAccY();
   az = acce.readAccZ();
   float acc = sqrt(ax * ax + ay * ay + az * az); //calculate 3D acceleration based on XYZ axis
-  if (acc > 10 && detect_ctrl ==0 ) {
-	  detected = 1;
+  if (acc > 10 && detect_counter == 0 ) {
+	  detected = TRUE;
   }
   if (acc > peak) {
 	  peak = acc;
-	  peak_val_loop_ctrl = 0;
+	  peak_val_loop_counter = 0;
   }
   else {
-	  peak_val_loop_ctrl++;
+	  peak_val_loop_counter++;
   }
-  peak = peak_val_loop_ctrl >= 200 ? 0 : peak; //clear previous peak recording after 2s cycles
-  detected ? bt_loop_ctrl = 0 : bt_loop_ctrl; //If impact detected, sent data package to smartphone app immediately
+  peak = peak_val_loop_counter >= TWO_SECOND ? 0 : peak; //clear previous peak recording after 2s cycles
+  detected ? bt_loop_counter = 0 : bt_loop_counter; //If impact detected, sent data package to smartphone app immediately
 
-  if (bt_loop_ctrl == 0) { //sent to bluetooth every 2000ms if no impact is detected
+  if (bt_loop_counter == 0) { //sent to bluetooth every 2000ms if no impact is detected
 	  String acc_str = String(acc);
 	  String peak_str = String(peak);
 	  const char* acc_ch = acc_str.c_str(); //convert C++ String to C str
@@ -73,14 +80,14 @@ void loop() {
 	  Serial.write(" Peak=");
 	  Serial.write(peak_ch);
 	  if (detected) {
-		  detect_ctrl = 100; 
+		  detect_counter = 100; 
 		  Serial.write(" IMPACT");
-		  detected = 0;
+		  detected = FALSE;
 	  }
 	  Serial.write("\n");
-	  bt_loop_ctrl = 500; //Send BT packages every ~5s, immediately if impact detected.
+	  bt_loop_counter = THIRTY_SECOND; //Send BT packages every ~30s, immediately if impact detected.
   }
-  detect_ctrl > 0 ? detect_ctrl-- : detect_ctrl;
-  bt_loop_ctrl--;
+  detect_counter > 0 ? detect_counter-- : detect_counter;
+  bt_loop_counter--;
   delay(10); //Set loop frequency to ~100Hz
 }
