@@ -7,12 +7,11 @@
 #include <DFRobot_LIS2DW12.h>
 #include <DFRobot_LIS2DH12.h>
 #include <DFRobot_LIS.h>
-
+#include <stdio.h>
+#include <string.h>
 DFRobot_H3LIS200DL_I2C acce; //Instantiate accelerometer object
-
-
-#define TWO_SECOND 200
-#define THIRTY_SECOND 3000
+#define TWO_SECOND 176
+#define THIRTY_SECOND 2658
 #define TRUE 1
 #define FALSE 0
 
@@ -64,9 +63,9 @@ void loop() {
   peak = peak_val_loop_counter >= TWO_SECOND ? 0 : peak; //clear previous peak recording after 2s cycles
   detected ? bt_loop_counter = 0 : bt_loop_counter; //If impact detected, sent data package to smartphone app immediately
 
-  if (bt_loop_counter == 0) { //sent to bluetooth every 2000ms if no impact is detected
-	  String acc_str = String(acc);
-	  String peak_str = String(peak);
+  if (bt_loop_counter == 0) { //sent to bluetooth every 30s if no impact is detected
+	  String acc_str = " " + String(acc);
+	  String peak_str = " " + String(peak);
 	  const char* acc_ch = acc_str.c_str(); //convert C++ String to C str
 	  const char* peak_ch = peak_str.c_str();
 	  /*---------------------------------------------------
@@ -75,16 +74,19 @@ void loop() {
 		 use Serial.write() instead of Serial.print()!
 		 Only C string is supported!!
 	   --------------------------------------------------*/
-	  Serial.write("3D_Acc="); //Send data string to BLE
-	  Serial.write(acc_ch);
-	  Serial.write(" Peak=");
-	  Serial.write(peak_ch);
 	  if (detected) {
-		  detect_counter = 100; 
-		  Serial.write(" IMPACT");
+		  detect_counter = 100;
+		  Serial.write("IMPACT\n\0");
 		  detected = FALSE;
 	  }
-	  Serial.write("\n");
+	  else {
+		  //const char* msg = ("3D_Acc" + acc_str + "Peak=" + peak_str).c_str();
+		  Serial.write("3D_Acc=\0"); //Send data string to BLE
+		  Serial.write(acc_ch);
+		  Serial.write(" Peak=\0");
+		  Serial.write(peak_ch);
+		  Serial.write("\n");
+	  }
 	  bt_loop_counter = THIRTY_SECOND; //Send BT packages every ~30s, immediately if impact detected.
   }
   detect_counter > 0 ? detect_counter-- : detect_counter;
