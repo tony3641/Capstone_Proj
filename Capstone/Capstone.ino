@@ -11,7 +11,7 @@
 #include <string.h>
 DFRobot_H3LIS200DL_I2C acce; //Instantiate accelerometer object
 #define TWO_SECOND 176
-#define THIRTY_SECOND 2658
+#define THIRTY_SECOND 300
 #define TRUE 1
 #define FALSE 0
 
@@ -29,6 +29,7 @@ int peak_val_loop_counter = 0; //peak value clearing counter
 int bt_loop_counter = 0; //bluetooth communication counter
 int detect_counter = 0; //impact detection counter
 int detected = 0; 
+int refresh_peroid = THIRTY_SECOND;
 
 // the setup function runs once when you press reset or power the board
 void setup() {
@@ -63,6 +64,11 @@ void loop() {
   peak = peak_val_loop_counter >= TWO_SECOND ? 0 : peak; //clear previous peak recording after 2s cycles
   detected ? bt_loop_counter = 0 : bt_loop_counter; //If impact detected, sent data package to smartphone app immediately
 
+  if (Serial.available()) {
+	  String buffer = Serial.readString();
+	  refresh_peroid = atoi(buffer.c_str());
+  }
+
   if (bt_loop_counter == 0) { //sent to bluetooth every 30s if no impact is detected
 	  String acc_str = " " + String(acc);
 	  String peak_str = " " + String(peak);
@@ -79,15 +85,14 @@ void loop() {
 		  Serial.write("IMPACT\n\0");
 		  detected = FALSE;
 	  }
-	  else {
-		  //const char* msg = ("3D_Acc" + acc_str + "Peak=" + peak_str).c_str();
-		  Serial.write("3D_Acc=\0"); //Send data string to BLE
-		  Serial.write(acc_ch);
-		  Serial.write(" Peak=\0");
-		  Serial.write(peak_ch);
-		  Serial.write("\n");
-	  }
-	  bt_loop_counter = THIRTY_SECOND; //Send BT packages every ~30s, immediately if impact detected.
+
+	  Serial.write("3D_Acc=\0"); //Send data string to BLE
+	  Serial.write(acc_ch);
+	  Serial.write(" Peak=\0");
+	  Serial.write(peak_ch);
+	  Serial.write("\n");
+
+	  bt_loop_counter = refresh_peroid; //Send BT packages every ~30s, immediately if impact detected.
   }
   detect_counter > 0 ? detect_counter-- : detect_counter;
   bt_loop_counter--;
