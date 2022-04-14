@@ -5,6 +5,12 @@ VisualStudioVersion = 17.0.32112.339
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Capstone", "Capstone\Capstone.vcxproj", "{C5F80730-F44F-4478-BDAE-6634EFC2CA88}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Blank", "..\..\..\OneDrive\文档\Arduino\Blank\Blank.vcxproj", "{86ABC414-4611-4D2B-8279-F10634A77E23}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CCLoader", "..\..\..\OneDrive\文档\Arduino\CCLoader\CCLoader.vcxproj", "{2FA7EEC9-4A1F-4D0F-BD87-9C9E1800CFD3}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ArduinoISP", "..\..\..\OneDrive\文档\Arduino\ArduinoISP\ArduinoISP.vcxproj", "{5AA17CC9-A53D-4995-BB8B-8E4EAFB54F4B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -15,6 +21,18 @@ Global
 		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Debug|x86.Build.0 = Debug|Win32
 		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Release|x86.ActiveCfg = Release|Win32
 		{C5F80730-F44F-4478-BDAE-6634EFC2CA88}.Release|x86.Build.0 = Release|Win32
+		{86ABC414-4611-4D2B-8279-F10634A77E23}.Debug|x86.ActiveCfg = Debug|Win32
+		{86ABC414-4611-4D2B-8279-F10634A77E23}.Debug|x86.Build.0 = Debug|Win32
+		{86ABC414-4611-4D2B-8279-F10634A77E23}.Release|x86.ActiveCfg = Release|Win32
+		{86ABC414-4611-4D2B-8279-F10634A77E23}.Release|x86.Build.0 = Release|Win32
+		{2FA7EEC9-4A1F-4D0F-BD87-9C9E1800CFD3}.Debug|x86.ActiveCfg = Debug|Win32
+		{2FA7EEC9-4A1F-4D0F-BD87-9C9E1800CFD3}.Debug|x86.Build.0 = Debug|Win32
+		{2FA7EEC9-4A1F-4D0F-BD87-9C9E1800CFD3}.Release|x86.ActiveCfg = Release|Win32
+		{2FA7EEC9-4A1F-4D0F-BD87-9C9E1800CFD3}.Release|x86.Build.0 = Release|Win32
+		{5AA17CC9-A53D-4995-BB8B-8E4EAFB54F4B}.Debug|x86.ActiveCfg = Debug|Win32
+		{5AA17CC9-A53D-4995-BB8B-8E4EAFB54F4B}.Debug|x86.Build.0 = Debug|Win32
+		{5AA17CC9-A53D-4995-BB8B-8E4EAFB54F4B}.Release|x86.ActiveCfg = Release|Win32
+		{5AA17CC9-A53D-4995-BB8B-8E4EAFB54F4B}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -11,7 +11,7 @@
 #include <string.h>
 DFRobot_H3LIS200DL_I2C acce; //Instantiate accelerometer object
 #define TWO_SECOND 176
-#define THIRTY_SECOND 300
+#define THIRTY_SECOND 2000
 #define TRUE 1
 #define FALSE 0
 
@@ -28,73 +28,82 @@ float peak = 0;
 int peak_val_loop_counter = 0; //peak value clearing counter
 int bt_loop_counter = 0; //bluetooth communication counter
 int detect_counter = 0; //impact detection counter
-int detected = 0; 
+int detected = 0;
 int refresh_peroid = THIRTY_SECOND;
 
 // the setup function runs once when you press reset or power the board
 void setup() {
-  Serial.begin(115200); //set baud rate to 115200 for BLE communication
-  while (!acce.begin()) {
-	  Serial.println("I2C initialization failed.");
-	  delay(1000);
-  }
-  Serial.print("Chip ID=");
-  Serial.println(acce.getID(), HEX);
-  acce.setRange(DFRobot_LIS::eH3lis200dl_200g); //set reading range to 200g
-  acce.setAcquireRate(DFRobot_LIS::eNormal_100HZ); //set refresh rate to 100Hz
+	Serial.begin(115200); //set baud rate to 115200 for BLE communication
+	while (!acce.begin()) {
+		Serial.println("I2C initialization failed.");
+		//Serial.write("3D_Acc.\n\0");
+		delay(1000);
+	}
+	Serial.print("Chip ID=");
+	Serial.println(acce.getID(), HEX);
+	acce.setRange(DFRobot_LIS::eH3lis200dl_200g); //set reading range to 200g
+	acce.setAcquireRate(DFRobot_LIS::eNormal_100HZ); //set refresh rate to 100Hz
 }
 
 // the loop function runs over and over again forever
 void loop() {
-  int32_t ax, ay, az;
-  ax = acce.readAccX();
-  ay = acce.readAccY();
-  az = acce.readAccZ();
-  float acc = sqrt(ax * ax + ay * ay + az * az); //calculate 3D acceleration based on XYZ axis
-  if (acc > 10 && detect_counter == 0 ) {
-	  detected = TRUE;
-  }
-  if (acc > peak) {
-	  peak = acc;
-	  peak_val_loop_counter = 0;
-  }
-  else {
-	  peak_val_loop_counter++;
-  }
-  peak = peak_val_loop_counter >= TWO_SECOND ? 0 : peak; //clear previous peak recording after 2s cycles
-  detected ? bt_loop_counter = 0 : bt_loop_counter; //If impact detected, sent data package to smartphone app immediately
+	int32_t ax, ay, az;
+	ax = acce.readAccX();
+	ay = acce.readAccY();
+	az = acce.readAccZ();
+	float acc = sqrt(ax * ax + ay * ay + az * az); //calculate 3D acceleration based on XYZ axis
+	if (acc > 10 && detect_counter == 0) {
+		detected = TRUE;
+	}
+	if (acc > peak) {
+		peak = acc;
+		peak_val_loop_counter = 0;
+	}
+	else {
+		peak_val_loop_counter++;
+	}
+	peak = peak_val_loop_counter >= TWO_SECOND ? 0 : peak; //clear previous peak recording after 2s cycles
+	detected ? bt_loop_counter = 0 : bt_loop_counter; //If impact detected, sent data package to smartphone app immediately
 
-  if (Serial.available()) {
-	  String buffer = Serial.readString();
-	  refresh_peroid = atoi(buffer.c_str());
-  }
+	if (Serial.available()) {
+		String buffer = Serial.readString();
+		refresh_peroid = atoi(buffer.c_str());
+	}
 
-  if (bt_loop_counter == 0) { //sent to bluetooth every 30s if no impact is detected
-	  String acc_str = " " + String(acc);
-	  String peak_str = " " + String(peak);
-	  const char* acc_ch = acc_str.c_str(); //convert C++ String to C str
-	  const char* peak_ch = peak_str.c_str();
-	  /*---------------------------------------------------
-		                     Note
-		 IF you want to send data string to BLE serial, 
-		 use Serial.write() instead of Serial.print()!
-		 Only C string is supported!!
-	   --------------------------------------------------*/
-	  if (detected) {
-		  detect_counter = 100;
-		  Serial.write("IMPACT\n\0");
-		  detected = FALSE;
-	  }
+	if (bt_loop_counter == 0) { //sent to bluetooth every 30s if no impact is detected
+		String acc_str = " " + String(acc);
+		String peak_str = " " + String(peak);
+		const char* acc_ch = acc_str.c_str(); //convert C++ String to C str
+		const char* peak_ch = peak_str.c_str();
+		/*---------------------------------------------------
+							   Note
+		   IF you want to send data string to BLE serial,
+		   use Serial.write() instead of Serial.print()!
+		   Only C string is supported!!
+		 --------------------------------------------------*/
+		if (detected) {
+			detect_counter = 100;
+			Serial.write("IMPACT\n\0");
+			detected = FALSE;
+		}
 
-	  Serial.write("3D_Acc=\0"); //Send data string to BLE
-	  Serial.write(acc_ch);
-	  Serial.write(" Peak=\0");
-	  Serial.write(peak_ch);
-	  Serial.write("\n");
+		Serial.write("3D_Acc=\0"); //Send data string to BLE
+		Serial.write(acc_ch);
+		Serial.write(" Peak=\0");
+		Serial.write(peak_ch);
+		Serial.write("\n");
 
-	  bt_loop_counter = refresh_peroid; //Send BT packages every ~30s, immediately if impact detected.
-  }
-  detect_counter > 0 ? detect_counter-- : detect_counter;
-  bt_loop_counter--;
-  delay(10); //Set loop frequency to ~100Hz
+		bt_loop_counter = refresh_peroid; //Send BT packages every ~30s, immediately if impact detected.
+	}
+	detect_counter > 0 ? detect_counter-- : detect_counter;
+	bt_loop_counter--;
+
+	/*if (Serial.available() > 0) { //send whatever received from smartphone
+		String incomingStr = Serial.readString();
+		const char* incoming_ch = incomingStr.c_str();
+		Serial.write(incoming_ch);
+		Serial.write("\n");
+	}*/
+
+	delay(10); //Set loop frequency to ~100Hz
 }
